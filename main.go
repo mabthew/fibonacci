@@ -96,17 +96,17 @@ func (f *fibStore) backup(path string) {
 }
 
 func (f *fibStore) next(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	result := f.getNextIndex()
+	result := f.getNext()
 	fmt.Fprint(w, result)
 }
 
 func (f *fibStore) current(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	result := f.getCurrentIndex()
+	result := f.getCurrent()
 	fmt.Fprint(w, result)
 }
 
 func (f *fibStore) previous(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	result := f.getPreviousIndex()
+	result := f.getPrevious()
 	fmt.Fprint(w, result)
 }
 

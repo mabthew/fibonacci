@@ -34,9 +34,8 @@ func (f *fibStore) getFromCache(idx int) (*big.Int, error) {
 	return result.(*big.Int), nil
 }
 
-func (f *fibStore) addToCache(idx int, value *big.Int) error {
+func (f *fibStore) addToCache(idx int, value *big.Int) {
 	f.cache.Add(idx, value)
-	return nil
 }
 
 func (f *fibStore) buildSequenceToIndex(recoveredIndex int) {
@@ -60,7 +59,7 @@ func (f *fibStore) buildSequenceToIndex(recoveredIndex int) {
 	f.index = recoveredIndex
 }
 
-func (f *fibStore) getNextIndex() *big.Int {
+func (f *fibStore) getNext() *big.Int {
 	current := f.index
 	current += 1
 
@@ -105,7 +104,7 @@ func (f *fibStore) getNextIndex() *big.Int {
 
 }
 
-func (f *fibStore) getCurrentIndex() *big.Int {
+func (f *fibStore) getCurrent() *big.Int {
 	result, err := f.getFromCache(f.index)
 	if err != nil {
 		panic(err)
@@ -114,7 +113,7 @@ func (f *fibStore) getCurrentIndex() *big.Int {
 	return result
 }
 
-func (f *fibStore) getPreviousIndex() *big.Int {
+func (f *fibStore) getPrevious() *big.Int {
 	current := f.index
 
 	if current == 0 {
