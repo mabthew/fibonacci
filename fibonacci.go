@@ -1,68 +1,155 @@
 package main
 
 import (
+	"errors"
 	"math/big"
+
+	"github.com/golang/groupcache/lru"
 )
 
 type fibStore struct {
-	index    int
-	sequence map[int]*big.Int
+	index int
+	cache *lru.Cache
 }
 
-func intializeFibStore() *fibStore {
-	f := new(fibStore)
-	f.index = 0
+var CacheMiss = errors.New("Cache miss")
 
-	f.sequence = make(map[int]*big.Int)
-	f.sequence[0] = big.NewInt(0)
-	f.sequence[1] = big.NewInt(1)
+func intializeCache(size int) (*fibStore, error) {
+	fib := new(fibStore)
+	lruCache := lru.New(size)
 
-	return f
+	fib.cache = lruCache
+	fib.addToCache(0, big.NewInt(0))
+	fib.addToCache(1, big.NewInt(1))
+
+	return &fibStore{0, lruCache}, nil
+}
+
+func (f *fibStore) getFromCache(idx int) (*big.Int, error) {
+	result, ok := f.cache.Get(idx)
+	if ok == false {
+		return big.NewInt(0), CacheMiss
+	}
+
+	return result.(*big.Int), nil
+}
+
+func (f *fibStore) addToCache(idx int, value *big.Int) error {
+	f.cache.Add(idx, value)
+	return nil
 }
 
 func (f *fibStore) buildSequenceToIndex(recoveredIndex int) {
 	for i := 2; i <= recoveredIndex; i++ {
 		sum := new(big.Int)
-		sum.Add(f.sequence[i-1], f.sequence[i-2])
+		a, err := f.getFromCache(i - 1)
+		if err != nil {
+			panic(err)
+		}
 
-		f.sequence[i] = sum
+		b, err := f.getFromCache(i - 2)
+		if err != nil {
+			panic(err)
+		}
+
+		sum.Add(a, b)
+
+		f.addToCache(i, sum)
 	}
 
 	f.index = recoveredIndex
 }
 
-func (f *fibStore) getNext() *big.Int {
+func (f *fibStore) getNextIndex() *big.Int {
 	current := f.index
 	current += 1
 
 	f.index = current
 
 	if current == 1 {
-		return f.sequence[current]
+		result, err := f.getFromCache(1)
+		if err != nil {
+			panic(err)
+		}
+
+		return result
 	}
 
-	a := f.sequence[current-1]
-	b := f.sequence[current-2]
+	result, err := f.getFromCache(current)
+	if err != nil {
+		if err == CacheMiss {
+			// cache miss
+			a, err := f.getFromCache(current - 1)
+			if err != nil {
+				panic(err)
+			}
 
-	sum := new(big.Int)
-	sum.Add(a, b)
+			b, err := f.getFromCache(current - 2)
+			if err != nil {
+				panic(err)
+			}
 
-	f.sequence[current] = sum
-	return sum
+			sum := new(big.Int)
+			sum.Add(a, b)
+
+			f.addToCache(current, sum)
+
+			return sum
+		} else {
+			panic(err)
+		}
+	}
+
+	// cache hit
+	return result
+
 }
 
-func (f *fibStore) getCurrent() *big.Int {
-	return f.sequence[f.index]
+func (f *fibStore) getCurrentIndex() *big.Int {
+	result, err := f.getFromCache(f.index)
+	if err != nil {
+		panic(err)
+	}
+
+	return result
 }
 
-func (f *fibStore) getPrevious() *big.Int {
+func (f *fibStore) getPreviousIndex() *big.Int {
 	current := f.index
 
 	if current == 0 {
-		return f.sequence[current]
+		// cache hit
+		result, err := f.getFromCache(current)
+		if err != nil {
+			panic(err)
+		}
+		return result
 	}
 
 	current -= 1
 	f.index = current
-	return f.sequence[current]
+	result, err := f.getFromCache(current)
+	if err != nil {
+		if err == CacheMiss {
+			// cache miss
+			a, err := f.getFromCache(current + 1)
+			if err != nil {
+				panic(err)
+			}
+
+			b, err := f.getFromCache(current + 2)
+			if err != nil {
+				panic(err)
+			}
+			result := new(big.Int)
+			result.Sub(b, a)
+
+			f.addToCache(current, result)
+			return result
+		} else {
+			panic(err)
+		}
+	}
+	// cache hit
+	return result
 }
