@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"math/big"
 	"net/http"
 	"os"
 	"strconv"
@@ -13,11 +12,6 @@ import (
 )
 
 var path = "backup.txt"
-
-type fib struct {
-	index    int
-	sequence map[int]*big.Int
-}
 
 func createOrReadBackupFile() int {
 	// check if file exists
@@ -83,86 +77,36 @@ func writeToBackupFile(index int) {
 	}
 }
 
-func (f *fib) recover(recoveredIndex int) {
-
-	for i := 2; i <= recoveredIndex; i++ {
-		sum := new(big.Int)
-		sum.Add(f.sequence[i-1], f.sequence[i-2])
-
-		f.sequence[i] = sum
-	}
-
-	f.index = recoveredIndex
-}
-
-func (f *fib) backup() {
+func (f *fibStore) backup() {
 	for {
 		<-time.After(2 * time.Second)
 		go writeToBackupFile(f.index)
 	}
 }
 
-func (f *fib) next(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	current := f.index
-	current += 1
-
-	f.index = current
-
-	if current == 1 {
-		fmt.Fprintf(w, "1")
-		return
-	}
-
-	a := f.sequence[current-1]
-	b := f.sequence[current-2]
-
-	sum := new(big.Int)
-	sum.Add(a, b)
-
-	f.sequence[current] = sum
-
-	fmt.Fprintf(w, sum.String())
+func (f *fibStore) next(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	fmt.Fprintf(w, f.getNext().String())
 }
 
-func (f *fib) current(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	fmt.Fprint(w, f.sequence[f.index])
+func (f *fibStore) current(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	fmt.Fprint(w, f.getCurrent().String())
 }
 
-func (f *fib) previous(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	current := f.index
+func (f *fibStore) previous(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
-	if current == 0 {
-		fmt.Fprint(w, f.sequence[current])
-		return
-	}
-
-	current -= 1
-	f.index = current
-
-	fmt.Fprint(w, f.sequence[current])
-}
-
-func intializeSequence() *fib {
-	fib := new(fib)
-	fib.index = 0
-
-	fib.sequence = make(map[int]*big.Int)
-	fib.sequence[0] = big.NewInt(0)
-	fib.sequence[1] = big.NewInt(1)
-
-	return fib
+	fmt.Fprint(w, f.getPrevious().String())
 }
 
 func main() {
 
-	fib := intializeSequence()
+	fib := intializeFibStore()
 
 	router := httprouter.New()
 
 	index := createOrReadBackupFile()
 
 	if index != 0 {
-		fib.recover(index)
+		fib.buildSequenceToIndex(index)
 	}
 
 	go fib.backup()
