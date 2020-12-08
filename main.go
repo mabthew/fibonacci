@@ -113,7 +113,7 @@ func (f *fibStore) previous(w http.ResponseWriter, r *http.Request, _ httprouter
 func main() {
 
 	const path = "backup.txt"
-	const cacheSize = 10000
+	const cacheSize = 1000000
 
 	fib, err := intializeCache(cacheSize)
 	if err != nil {

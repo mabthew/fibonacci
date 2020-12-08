@@ -2,10 +2,14 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"math/big"
+	"sync"
 
 	"github.com/golang/groupcache/lru"
 )
+
+var mutex = &sync.Mutex{}
 
 type fibStore struct {
 	index int
@@ -26,16 +30,19 @@ func intializeCache(size int) (*fibStore, error) {
 }
 
 func (f *fibStore) getFromCache(idx int) (*big.Int, error) {
+	mutex.Lock()
 	result, ok := f.cache.Get(idx)
+	mutex.Unlock()
 	if ok == false {
 		return big.NewInt(0), CacheMiss
 	}
-
 	return result.(*big.Int), nil
 }
 
 func (f *fibStore) addToCache(idx int, value *big.Int) {
+	mutex.Lock()
 	f.cache.Add(idx, value)
+	mutex.Unlock()
 }
 
 func (f *fibStore) buildSequenceToIndex(recoveredIndex int) {
@@ -62,6 +69,7 @@ func (f *fibStore) buildSequenceToIndex(recoveredIndex int) {
 func (f *fibStore) getNext() *big.Int {
 	current := f.index
 	current += 1
+	fmt.Println("current:", current)
 
 	f.index = current
 
@@ -85,6 +93,7 @@ func (f *fibStore) getNext() *big.Int {
 
 			b, err := f.getFromCache(current - 2)
 			if err != nil {
+
 				panic(err)
 			}
 
