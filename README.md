@@ -54,7 +54,7 @@ Transfer/sec:     83.92MB
 
 **`/previous`**
 
-The `/previous` endpoing was tested with a starting index of 300,000 so there would be a lot of room to move towards 0. Running the same `wrk` command from above against the `/previous` endpoint showed that the throughput was higher than the `/next` endpoint. This was most likely because the cache was populated with the indices being retrieved, resulting in a lot of cache hits and saving time on big number arithmetic.
+The `/previous` endpoint was tested with a starting index of 300,000 so there would be a lot of room to move towards 0. Running the same `wrk` command from above against the `/previous` endpoint showed that the throughput was higher than the `/next` endpoint. This was most likely because the cache was populated with the indices being retrieved, resulting in a lot of cache hits and saving time on big number arithmetic.
 
 ```
 ➜  fibonacci git:(main) ✗ wrk -t12 -c14 -d120s http://127.0.0.1:8080/previous
