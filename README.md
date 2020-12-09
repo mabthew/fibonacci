@@ -68,7 +68,7 @@ Requests/sec:   7914.98
 Transfer/sec:     84.51MB
 ```
 
-**Random load testing**
+**Random load testing**<br/>
 Several different load testing tools were implemented to see how a randomized program would perform- Apache JMeter, Apache Bench, Vegeta, and http_load. There were issues with each, but the http_load results seemed the most reliable. http_load was showing ~1000 requests/second for a 5s duration but would drastically drop to ~500 requests/second at durations over a minute, and from all the testing performed it didn't seem to be an issue with the API. I don't trust this metric because the caching along with an even distribution of previous, current, and next calls should have resulted in mostly cache hits. I would expect a test to perform with a similar or higher throughput than the previous tests.
 
 ### Performance on a small machine
