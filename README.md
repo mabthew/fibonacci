@@ -76,7 +76,7 @@ To test this on a small machine, I spun up a docker container allowing 1 CPU and
 
 ```
 docker build .  
-docker run -p 8080:8080 -m 512m --cpus <image_id>
+docker run -p 8080:8080 -m 512m --cpus 1 <image_id>
 ```
 
 The performance was slightly lower than on my machine, but still over 1,000 requests/second.
