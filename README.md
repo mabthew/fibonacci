@@ -6,7 +6,7 @@ This program is written in Go, so with Go installed, you can clone, build, and r
 
 ```
 git clone https://github.com/mabthew/fibonacci.git && 
-    cd /fibonacci
+    cd fibonacci/ &&
     go get github.com/julienschmidt/httprouter && 
     go get github.com/golang/groupcache/lru && 
     go build . && 
